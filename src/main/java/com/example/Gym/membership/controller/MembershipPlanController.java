@@ -107,3 +107,38 @@ public class MembershipPlanController {
             return "redirect:/plans/add";
         }
     }
+
+    // POST /plans/edit/{id} - Process editing (Admin Only)
+    @PostMapping("/edit/{id}")
+    public String processEditPlan(@PathVariable String id, @ModelAttribute MembershipPlan plan, RedirectAttributes redirectAttributes, HttpSession session) {
+        if (!isAdmin(session)) { return "redirect:/"; } // Security check
+        try {
+            planService.updatePlan(id, plan);
+            redirectAttributes.addFlashAttribute("successMessage", "Plan updated successfully!");
+            return "redirect:/plans?context=admin";
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to update plan: " + e.getMessage());
+            // Add plan object to flash attributes if you want edit form to retain failed input
+            // redirectAttributes.addFlashAttribute("plan", plan);
+            return "redirect:/plans/edit/" + id;
+        } catch (Exception e) {
+            System.err.println("Error updating plan ID " + id + ": " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "An unexpected error occurred while updating the plan.");
+            return "redirect:/plans/edit/" + id;
+        }
+    }
+
+    // POST /plans/delete/{id} - Process deleting (Admin Only)
+    @PostMapping("/delete/{id}")
+    public String deletePlan(@PathVariable String id, RedirectAttributes redirectAttributes, HttpSession session) {
+        if (!isAdmin(session)) { return "redirect:/"; } // Security check
+        try {
+            boolean deleted = planService.deletePlan(id);
+            if (deleted) { redirectAttributes.addFlashAttribute("successMessage", "Plan deleted successfully!"); }
+            else { redirectAttributes.addFlashAttribute("errorMessage", "Could not delete plan (Plan not found)."); }
+        } catch (IllegalStateException e) { redirectAttributes.addFlashAttribute("errorMessage", "Failed to delete plan: " + e.getMessage());
+        } catch (Exception e) { System.err.println("Error deleting plan ID " + id + ": " + e.getMessage()); e.printStackTrace(); redirectAttributes.addFlashAttribute("errorMessage", "An error occurred while deleting the plan."); }
+        return "redirect:/plans?context=admin";
+    }
+}
