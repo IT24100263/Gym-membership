@@ -36,3 +36,43 @@ public class MembershipPlanController {
         Object role = session.getAttribute("userRole");
         return role != null && "ADMIN".equalsIgnoreCase(role.toString());
     }
+
+    // --- Display Pages ---
+
+    @GetMapping
+    public String listPlans(Model model, HttpSession session, @RequestParam(name = "context", required = false) String context) {
+        boolean isAdminAccessing = isAdmin(session);
+        boolean allowAdd = "admin".equalsIgnoreCase(context) && isAdminAccessing;
+
+        model.addAttribute("plans", planService.getAllPlans());
+        model.addAttribute("isAdmin", isAdminAccessing);
+        model.addAttribute("allowAddPlan", allowAdd);
+
+        System.out.println("[DEBUG] MembershipPlanController.listPlans - isAdmin: " + isAdminAccessing + ", context: " + context + ", allowAddPlan: " + allowAdd);
+        return "plans/list";
+    }
+
+    // GET /plans/add - Show form to add a new plan (Admin Only)
+    @GetMapping("/add")
+    public String showAddPlanForm(Model model, HttpSession session) { // Added session
+        // Security Check
+        if (!isAdmin(session)) {
+            // Optionally add flash message "Access Denied"
+            return "redirect:/"; // Redirect non-admins
+        }
+        model.addAttribute("plan", new MembershipPlan()); // Empty plan object for form binding
+        return "plans/add"; // Renders templates/plans/add.html
+    }
+
+    @GetMapping("/edit/{id}")
+    public String showEditPlanForm(@PathVariable String id, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
+        if (!isAdmin(session)) { return "redirect:/plans"; } // Security check
+        Optional<MembershipPlan> planOpt = planService.getPlanById(id);
+        if (planOpt.isPresent()) {
+            model.addAttribute("plan", planOpt.get());
+            return "plans/edit";
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Plan not found with ID: " + id);
+            return "redirect:/plans?context=admin";
+        }
+    }
