@@ -69,3 +69,66 @@ public class MembershipPlanRepository {
                 StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
+    // --- CRUD Methods ---
+
+    public List<MembershipPlan> findAll() {
+        try {
+            return findAllInternal();
+        } catch (IOException e) {
+            System.err.println("Error reading plans file: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    public Optional<MembershipPlan> findById(String id) {
+        return findAll().stream()
+                .filter(plan -> plan.getId().equals(id))
+                .findFirst();
+    }
+
+    public MembershipPlan save(MembershipPlan plan) {
+        try {
+            List<MembershipPlan> plans = findAllInternal();
+            if (plan.getId() == null || plan.getId().trim().isEmpty()) {
+                // Create new plan
+                long newIdNum = idCounter.incrementAndGet();
+                plan.setId("P" + newIdNum); // Simple ID format
+                plans.add(plan);
+            } else {
+                // Update existing plan
+                Optional<MembershipPlan> existingPlanOpt = plans.stream()
+                        .filter(p -> p.getId().equals(plan.getId()))
+                        .findFirst();
+                if (existingPlanOpt.isPresent()) {
+                    plans.remove(existingPlanOpt.get());
+                    plans.add(plan);
+                } else {
+                    System.err.println("Warning: Trying to update non-existent plan ID: " + plan.getId());
+                    plans.add(plan); // Or throw exception
+                }
+            }
+            saveAllInternal(plans);
+            return plan;
+        } catch (IOException e) {
+            System.err.println("Error saving plan: " + e.getMessage());
+            return null; // Indicate failure
+        }
+    }
+
+    public boolean deleteById(String id) {
+        try {
+            List<MembershipPlan> plans = findAllInternal();
+            // Optional: Add check here - cannot delete plan if members are assigned to it?
+            // This requires checking the MemberRepository data, making service layer more appropriate for this logic.
+            boolean removed = plans.removeIf(plan -> plan.getId().equals(id));
+            if (removed) {
+                saveAllInternal(plans);
+            }
+            return removed;
+        } catch (IOException e) {
+            System.err.println("Error deleting plan: " + e.getMessage());
+            return false;
+        }
+    }
+}
+
