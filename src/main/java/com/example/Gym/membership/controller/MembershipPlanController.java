@@ -76,3 +76,34 @@ public class MembershipPlanController {
             return "redirect:/plans?context=admin";
         }
     }
+
+    // --- Handle Form Submissions ---
+
+    // POST /plans/add - Process adding a new plan (Admin Only)
+    @PostMapping("/add")
+    public String processAddPlan(@ModelAttribute MembershipPlan plan, RedirectAttributes redirectAttributes, HttpSession session) { // Added session
+        // Security Check
+        if (!isAdmin(session)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Unauthorized action.");
+            return "redirect:/";
+        }
+
+        try {
+            // Service layer should perform detailed validation
+            planService.addPlan(plan);
+            redirectAttributes.addFlashAttribute("successMessage", "Plan added successfully!");
+            // Redirect back to the plan list with admin context
+            return "redirect:/plans?context=admin";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to add plan: " + e.getMessage());
+            // Add the submitted plan back to flash attributes to repopulate form
+            redirectAttributes.addFlashAttribute("plan", plan);
+            return "redirect:/plans/add"; // Redirect back to the add form GET mapping
+        } catch (Exception e) {
+            System.err.println("Error adding plan: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "An unexpected error occurred while adding the plan.");
+            redirectAttributes.addFlashAttribute("plan", plan); // Keep data on unexpected error too
+            return "redirect:/plans/add";
+        }
+    }
