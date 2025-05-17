@@ -47,3 +47,46 @@ public class MembershipPlanService {
         return planRepository.save(plan);
     }
 
+    public MembershipPlan updatePlan(String id, MembershipPlan updatedPlanDetails) {
+        updatedPlanDetails.setId(id); // Ensure ID is consistent
+        if (planRepository.findById(id).isEmpty()) {
+            throw new RuntimeException("Plan not found with id: " + id); // Custom exception preferred
+        }
+        // Add validation for updated details
+        if (updatedPlanDetails.getPrice() == null || updatedPlanDetails.getPrice().signum() < 0) {
+            throw new IllegalArgumentException("Price cannot be negative.");
+        }
+        if (updatedPlanDetails.getDurationMonths() <= 0) {
+            throw new IllegalArgumentException("Duration must be positive.");
+        }
+
+        // Optional: Check if name is being changed to one that already exists (excluding itself)
+        boolean nameCollision = planRepository.findAll().stream()
+                .anyMatch(p -> !p.getId().equals(id) && p.getName().equalsIgnoreCase(updatedPlanDetails.getName()));
+        if (nameCollision) {
+            throw new IllegalArgumentException("Another plan with the name '" + updatedPlanDetails.getName() + "' already exists.");
+        }
+
+        return planRepository.save(updatedPlanDetails);
+    }
+
+    public boolean deletePlan(String id) {
+        // **Business Logic Example:** Prevent deletion if plan is in use by members
+        // boolean isInUse = memberRepository.findAll().stream()
+        //                    .anyMatch(member -> id.equals(member.getMembershipPlanId()));
+        // if (isInUse) {
+        //     throw new IllegalStateException("Cannot delete plan ID " + id + " as it is currently assigned to members.");
+        // }
+
+        // If the check above is implemented, remove the simple delete from repository and call it here.
+        if (planRepository.findById(id).isEmpty()) {
+            System.err.println("Attempted to delete non-existent plan ID: " + id);
+            return false; // Or throw not found exception
+        }
+
+        return planRepository.deleteById(id); // Keep this if no dependency check is needed or handled differently
+    }
+}
+
+
+
