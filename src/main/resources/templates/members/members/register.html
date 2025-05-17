@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Member Profile</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .profile-header {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+        .profile-header h1 {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .profile-header p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+        .card {
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        .card-header {
+            background-color: #e9ecef;
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+        .card-header h1, .card-header h2, .card-header h3, .card-header h4, .card-header h5, .card-header h6 {
+            margin-bottom: 0;
+            font-weight: bold;
+        }
+        .card-body {
+            padding: 2rem;
+        }
+        .form-label {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .form-control, .form-select {
+            border-radius: 0.3rem;
+            border: 1px solid #ced4da;
+            padding: 0.75rem;
+            transition: border-color 0.15s ease-in-out, shadow-sm 0.15s ease-in-out;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #007bff;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+        }
+        .btn {
+            border-radius: 0.3rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: transform 0.1s ease-in-out;
+        }
+        .btn:hover {
+            transform: translateY(-0.1rem);
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        .btn-outline-secondary {
+            border-color: #6c757d;
+            color: #6c757d;
+        }
+        .btn-outline-secondary:hover {
+            background-color: #e2e3e4;
+            border-color: #6c757d;
+            color: #6c757d;
+        }
+        .alert {
+            border-radius: 0.3rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .list-group-item {
+            border-radius: 0.3rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background-color: white;
+            border: 1px solid #dee2e6;
+        }
+        .list-group-item:last-child {
+            margin-bottom: 0;
+        }
+        .payment-status {
+            border-radius: 1rem;
+            padding: 0.5rem 1rem;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            display: inline-block;
+        }
+        .payment-status.PAID {
+            background-color: #28a745;
+        }
+        .payment-status.PENDING {
+            background-color: #ffc107;
+            color: #343a40;
+        }
+        .payment-status.OVERDUE, .payment-status.FAILED {
+            background-color: #dc3545;
+        }
+        .payment-status.UNKNOWN {
+            background-color: #6c757d;
+        }
+
+        .package { /* Copied from the provided HTML */
+            background: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .package:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .package h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .package p {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .package ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .package ul li {
+            margin-bottom: 5px;
+        }
+
+        .package .price {
+            font-size: 20px;
+            color: #4caf50;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .package button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .package button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top border-bottom shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-semibold" th:href="@{/}">
+            <i class="fa-solid fa-dumbbell me-2 text-primary"></i> Gym System
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/attendance/history/{id}(id=${member?.id})}">Attendance</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/members/payment/initiate}">Payment</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/plans}">Plans</a>
+                </li>
+
+                <li class="nav-item" th:if="${isLoggedIn}">
+                    <span class="navbar-text me-2" th:text="${'Welcome, ' + userName + '!'}">Welcome!</span>
+                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/logout}">Logout</a>
+                </li>
+                <li class="nav-item" th:unless="${isLoggedIn}">
+                    <a class="btn btn-sm btn-outline-primary" th:href="@{/login}">Login</a>
+                </li>
+
+                <li class="nav-item dropdown ms-lg-2">
+                    <button class="btn btn-link nav-link py-1 px-0 px-lg-2 dropdown-toggle d-flex align-items-center" id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown" data-bs-display="static" aria-label="Toggle theme (auto)">
+                        <i class="fa-solid fa-circle-half-stroke my-1 theme-icon-active"></i><span class="d-lg-none ms-2" id="bd-theme-text">Toggle theme</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-theme-text">
+                        <li><button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false"><i class="fa-solid fa-sun me-2 opacity-50 theme-icon"></i>Light<i class="fa-solid fa-check ms-auto d-none"></i></button></li>
+                        <li><button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false"><i class="fa-solid fa-moon me-2 opacity-50 theme-icon"></i>Dark<i class="fa-solid fa-check ms-auto d-none"></i></button></li>
+                        <li><button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto" aria-pressed="true"><i class="fa-solid fa-circle-half-stroke me-2 opacity-50 theme-icon"></i>Auto<i class="fa-solid fa-check ms-auto d-none"></i></button></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4 py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-sm mb-4">
+                <div class="profile-header">
+                    <h1 class="h4 mb-0"> <i class="fas fa-user-edit me-2"></i> Edit Member Profile </h1>
+                    <p>Manage your profile information.</p>
+                </div>
+                <div class="card-body">
+                    <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}">...</div>
+                    <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}">...</div>
+                    <div th:if="${infoMessage}" class="alert alert-info" role="alert" th:text="${infoMessage}">...</div>
+                    <form th:action="@{/members/profile/{id}(id=${member?.id})}" th:object="${member}" method="post">
+                        <input type="hidden" th:field="*{id}" />
+                        <input type="hidden" th:field="*{password}" />
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Full Name:</label>
+                            <input type="text" class="form-control" id="name" th:field="*{name}" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email:</label>
+                            <input type="email" class="form-control" id="email" th:field="*{email}" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number (Optional):</label>
+                            <input type="tel" class="form-control" id="phone" th:field="*{phone}" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="membershipPlanId" class="form-label">Membership Plan:</label>
+                            <select class="form-select" id="membershipPlanId" th:field="*{membershipPlanId}" required>
+                                <option value="">-- Select Plan --</option>
+                                <option th:each="plan : ${availablePlans}"
+                                        th:value="${plan.id}"
+                                        th:text="${plan.name + ' ($' + #numbers.formatDecimal(plan.price, 1, 'COMMA', 2, 'POINT') + ')'}"
+                                        th:selected="${plan.id == member.membershipPlanId}">
+                                    Plan Name ($Price)
+                                </option>
+                            </select>
+                        </div>
+                        <hr>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a th:if="${isAdmin}" th:href="@{/members}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-1"></i> Back to List
+                            </a>
+                            <a th:unless="${isAdmin}" th:href="@{/}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-times me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Update Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-dollar-sign me-2"></i> Payment Status </h5>
+                </div>
+                <div class="card-body">
+                    <p>
+                        Current Status:
+                        <span th:if="${paymentStatus != null}"
+                              th:switch="${paymentStatus.name()}"
+                              class="payment-status"
+                              th:classappend="${paymentStatus.name()}">
+                            ${paymentStatus.name()}
+                        </span>
+                        <span th:unless="${paymentStatus != null}" class="badge bg-secondary fs-6">UNKNOWN</span>
+                    </p>
+
+                    <form th:if="${isPaymentDue && member?.id == loggedInMember?.id}"
+                          th:action="@{/members/payment/initiate}" method="post" class="mt-3">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-credit-card me-1"></i> Make Payment (Simulated)
+                        </button>
+                        <small class="d-block text-muted mt-1">(Creates a PENDING record for admin processing)</small>
+                    </form>
+                    <p th:unless="${isPaymentDue}" class="text-success mt-2 mb-0">Your membership payment is up to date.</p>
+
+                    <hr th:if="${paymentHistory != null && !#lists.isEmpty(paymentHistory)}">
+                    <h6 th:if="${paymentHistory != null && !#lists.isEmpty(paymentHistory)}">Recent Payment History:</h6>
+                    <ul class="list-unstyled small mb-0" th:if="${paymentHistory != null && !#lists.isEmpty(paymentHistory)}">
+                        <li th:each="rec, iterStat : ${paymentHistory}" th:if="${iterStat.index < 3}">
+                            <span th:text="${rec.dueDate != null ? #temporals.format(rec.dueDate, 'yyyy-MM-dd') : 'N/A'}">Date</span> -
+                            <span th:text="${'$' + #numbers.formatDecimal(rec.amount, 1, 2)}">Amount</span> -
+                            <span th:text="${rec.status.name()}">Status</span>
+                            <span th:if="${rec.paymentTimestamp}" th:text="${'(Processed: ' + #temporals.format(rec.paymentTimestamp, 'yyyy-MM-dd HH:mm') + ')'}"></span>
+                        </li>
+                        <li th:if="${paymentHistory != null && #lists.size(paymentHistory) > 3}">...</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <a th:href="@{/attendance/history/{id}(id=${member?.id})}" class="btn btn-outline-info">
+                        <i class="fas fa-history me-1"></i> View Full Attendance History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4 py-4">
+    <h2 class="text-center mb-4">Fitness Packages</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="package">
+                <h2>Basic Package</h2>
+                <p>Ideal for beginners looking to start their fitness journey.</p>
+                <ul>
+                    <li>1 session per week</li>
+                    <li>Personalized workout plan</li>
+                    <li>Access to group classes</li>
+                </ul>
+                <p class="price">Rs 10 000/- for one month</p>
+                <a href="members/register">
+                    <button>Sign Up</button>
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="package">
+                <h2>Standard Package</h2>
+                <p>For those aiming to build strength and endurance.</p>
+                <ul>
+                    <li>2 sessions per week</li>
+                    <li>Customized nutrition plan</li>
+                    <li>Priority booking for classes</li>
+                </ul>
+                <p class="price">Rs 15 000/- for one month</p>
+                <a href="members/register">
+                    <button>Sign Up</button>
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="package">
+                <h2>Premium Package</h2>
+                <p>Comprehensive training for advanced fitness enthusiasts.</p>
+                <ul>
+                    <li>3 sessions per week</li>
+                    <li>One-on-one coaching</li>
+                    <li>24/7 support and tracking</li>
+                </ul>
+                <p class="price">Rs 25 000/- for one month</p>
+                <a href="members/register">
+                    <button>Sign Up</button>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="py-3 mt-4">
+    <div class="container text-center">
+        <span class="text-muted">© 2025 Gym Membership System</span>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (() => {
+        'use strict';
+        const getStoredTheme = () => localStorage.getItem('theme');
+        const setStoredTheme = theme => localStorage.setItem('theme', theme);
+        const getPreferredTheme = () => {
+            const storedTheme = getStoredTheme();
+            if (storedTheme) {
+                return storedTheme
+            }
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        };
+        const setTheme = theme => {
+            if (theme === 'auto') {
+                document.documentElement.setAttribute('data-bs-theme', (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', theme)
+            }
+        };
+        setTheme(getPreferredTheme());
+        const showActiveTheme = (theme, focus = false) => {
+            const themeSwitcher = document.querySelector('#bd-theme');
+            if (!themeSwitcher) {
+                return
+            }
+            const themeSwitcherText = document.querySelector('#bd-theme-text');
+            const activeThemeIcon = document.querySelector('.theme-icon-active');
+            const btnToActive = document.querySelector(`[data-bs-theme-value="${theme}"]`);
+            const iconOfActiveBtn = btnToActive.querySelector('i.theme-icon').classList.toString();
+            document.querySelectorAll('[data-bs-theme-value]').forEach(element => {
+                element.classList.remove('active');
+                element.setAttribute('aria-pressed', 'false');
+                element.querySelector('i.fa-check').classList.add('d-none')
+            });
+            btnToActive.classList.add('active');
+            btnToActive.setAttribute('aria-pressed', 'true');
+            btnToActive.querySelector('i.fa-check').classList.remove('d-none');
+            const existingIconClasses = activeThemeIcon.classList;
+            existingIconClasses.forEach(cls => {
+                if (cls.startsWith('fa-')) {
+                    activeThemeIcon.classList.remove(cls);
+                }
+            });
+            iconOfActiveBtn.split(' ').forEach(cls => {
+                if (cls.startsWith('fa-')) {
+                    activeThemeIcon.classList.add(cls);
+                }
+            });
+            const themeSwitcherLabel = `${themeSwitcherText.textContent} (${btnToActive.dataset.bsThemeValue})`;
+            themeSwitcher.setAttribute('aria-label', themeSwitcherLabel);
+            if (focus) {
+                themeSwitcher.focus()
+            }
+        };
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            const storedTheme = getStoredTheme();
+            if (storedTheme !== 'light' && storedTheme !== 'dark') {
+                setTheme(getPreferredTheme())
+            }
+        });
+        window.addEventListener('DOMContentLoaded', () => {
+            showActiveTheme(getPreferredTheme());
+            document.querySelectorAll('[data-bs-theme-value]').forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const theme = toggle.getAttribute('data-bs-theme-value');
+                    setStoredTheme(theme);
+                    setTheme(theme);
+                    showActiveTheme(theme, true)
+                })
+            })
+        })
+    })()
+</script>
+</body>
+</html>
